@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>ESC Player controller</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+.button {
+    /*
+    background-color: #4CAF50;
+    border: none;
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    margin: 4px 2px;
+    cursor: pointer;
+    padding: 15px 32px;
+    font-size: 100%;
+    */
+}
+button.dir {
+    /*
+    background-color: #4CAF50;
+    border: none;
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    margin: 4px 2px;
+    cursor: pointer;
+    padding: 15px 32px;
+    font-size: 100%;
+    */
+    opacity: 0.5 ;
+    width: 30vw;
+    height: 30vw;
+}
+body {
+    opacity: 0.5 ;
+    font-size: 100%;
+}
+</style>
+    <script src='http://ajax.googleapis.com/ajax/libs/jquery/1.2.6/jquery.min.js'></script>
+    <script src="osc/osc-browser.min.js"></script>
+    <script src='../strophe.js'></script>
+    <script>
+        // Including my files this way so they don't get cached, which is annoying while debugging
+    function includeJS(f,attr) {
+        document.write("<script " + attr+ " type='text/javascript' src='"+f+"?v=" + Date.now() + "'><\/script>");
+    }
+    includeJS('swipe.js','async');
+    includeJS('oscppb.js','defer');
+    includeJS('esc.js','defer');
+</script>
+
+  <!--  
+    <script src='swipe.js?v=1'></script>
+    <script src='oscppb.js?v=1'></script>
+    <script src='esc.js?v=1'></script>-->
+  </head>
+  <body>
+    <div id='background' style="position:fixed;width: 100%;height:100%; z-index:-1"></div>
+    <div id='login' style='font-size: 100%' >
+        <label for='jid'>Player name:</label>
+        <input type='text' name='jid' id='jid' value='xxx' onchange="setUserName(this.value)">
+    </div>
+    <button id='connect' value='connect' class="button">Connect</button>
+    <button id='join' onclick="joinGame()" class="button">Join Game</button>
+    <br>
+    <button id='locate' onclick="shakeToLocate(playerID)" class="button">Locate Me</button>
+    <button id='locate' onclick="shakeToLocateN(3)" class="button">Locate 3</button>
+
+    <br>
+    Current game: <span id="currentGame"></span><br>
+    Player ID: <span id="playerid"> </span>
+    OSC index: <span id="oscindex"> </span><br>
+    Sprite: <span id="sprite"></span><br>
+    <div id=controller></div>
+
+    <hr>
+    <div style="height: 150px; overflow: scroll;">
+        <table id='log'></table>
+    </div>
+    <script type="text/javascript">
+
+// Stuff to do here 
+
+    </script>
+  </body>
+</html>

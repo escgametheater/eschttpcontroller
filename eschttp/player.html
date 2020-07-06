@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>ESC Player controller</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes"><!--If launched from home screen, will launch in full screen mode -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <
+    <!--<meta name="apple-itunes-app" content="app-id=XXXXXXXXX"> Once we have an app?-->
+    <style>
+.button {
+    /*
+    background-color: #4CAF50;
+    border: none;
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    margin: 4px 2px;
+    cursor: pointer;
+    padding: 15px 32px;
+    font-size: 100%;
+    */
+    height: 16.6vmin;
+}
+button.dir {
+    /*
+    background-color: #4CAF50;
+    border: none;
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    margin: 4px 2px;
+    cursor: pointer;
+    padding: 15px 32px;
+    font-size: 100%;
+    opacity: 0.5 ;
+    */
+    width: 16.6vmin;
+    height: 16.6vmin;
+}
+body {
+    opacity: 100% ;
+    font-size: 100%;
+    background-color: black;
+    color: white;
+}
+</style>
+    <script src='http://ajax.googleapis.com/ajax/libs/jquery/1.2.6/jquery.min.js'></script>
+    <script src="osc/osc-browser.min.js"></script>
+    <script src='strophe.js'></script>
+    <script src="compatibility/startswith.js"></script><!-- Needed to support old browsers-->
+    <script src="compatibility/searchparams.js"></script><!-- Needed to support old browsers-->
+    <script src="compatibility/NoSleep.js"></script><!-- Needed to prevent browser from sleeping-->
+    <script>
+
+    // Set my IP address if this is served as a php file
+    // I don't think the IP address is actually used, but it is sent by the controller's "registered:" response
+    // If the actual IP address is desired, serve this page as a PHP document.
+    // A simple way is to link .html to .php, and serve by a webserver 
+    var myIP="<?php echo $_SERVER['REMOTE_ADDR']; ?>" ;
+    var serverHostname="<?php echo gethostname(); ?>" ;
+    if (myIP.charAt(0) === "<")
+        myIP = "0.0.0.0";
+    console.log("Your IP address is: "+myIP);
+
+    serverHostname = serverHostname.toLowerCase();
+    if (serverHostname.charAt(0) === "<")
+        serverHostname = "esc-game-server.local";
+    console.log("Server host name : "+serverHostname);
+
+    // Including my files this way so they don't get cached, which is annoying while debugging
+    function includeJS(f,attr) {
+        document.write("<script " + attr+ " type='text/javascript' src='"+f+"?v=" + Date.now() + "'><\/script>");
+    }
+    includeJS('swipe.js','defer');
+    includeJS('esc.js','defer');
+    includeJS('escwebsocket.js','defer');
+    includeJS('games/playerController.js','defer');
+    includeJS('games/pixelprisonblues.js','defer');
+    includeJS('games/robotbasketballpro.js','defer');
+    includeJS('games/cubeballpro.js','defer');
+    includeJS('games/snb.js','defer');
+    includeJS('games/fruitpro.js','defer');
+    includeJS('games/beespro.js','defer');
+    includeJS('games/networkdemo.js','defer');
+    var testPlayer = 0 ;
+</script>
+
+  </head>
+  <body style="background-color: #333333; bottom: 0; left: 0;">
+    <!-- <div id='background' style="position:fixed;width: 100%;height:100%; z-index:-1"></div>-->
+<div style="visibility: hidden">
+    <div id='login' style='font-size: 100% z-index:1' >
+        <label for='jid'>Player name:</label>
+        <input type='text' name='jid' id='jid' value='notworking' onchange="setUserName(this.value)">
+    </div>
+    <button id='connect' value='connect' class="button">Connect</button>
+    <button id='join' onclick="playerController.joinGame()" class="button">Join Game</button>
+    <br>
+    <button id='ping' onclick="sendPing(docentUser,'ping:me');" class="button">Ping</button>
+    <button id='renderController' onclick="playerController.renderController(); return false" class="button">Show controller</button>
+
+    <br>
+    Current game: <span id="currentGame"></span><br>
+    Player ID: <span id="playerid"> </span>
+    <button onclick="setOSCindex(prompt('New OSC value:'))">OSC index: <span id="oscindex"> </span></button>
+    <span id="sprite"></span> <span id="team"></span>
+    <button onclick="document.exitFullScreen();">-FS</button>
+    <button onclick="setTimeout(function(){window.scrollTo(0, 100);}, 1);">v</button>
+    <button onclick="window.scrollTo(0, 0);">^</button>
+</div>
+    <div id="gofullscreen" onclick="goFullScreen();" style="z-index:2; text-align: right; position: absolute; right: 0; top: 0; height:1000; font-size: 100%; ">^<br>^<br>^<br>^<br>^<br>^<br>^<br>^<br>^<br>Go<br>Full<br>Screen<br>^<br>^<br>^<br>^<br>^<br>^<br>^<br>^<br>^<br>^<br>^<br>^<br>^</div>
+    <br>
+    <div id=controller style="opacity: 100%; position: fixed; bottom: 0; right: 0; left: 0; top: 0;"></div>
+    <div id=rotateme style="opacity: 100%; position: absolute; bottom: 0; left: 0;">Rotate me please!</div>
+
+    <div id='logdiv' style="height: 50vh; overflow: scroll; visibility: hidden;">
+        <table id='log'></table>
+    </div>
+    <script type="text/javascript">
+// Do anything else here?
+    </script>
+  </body>
+</html>

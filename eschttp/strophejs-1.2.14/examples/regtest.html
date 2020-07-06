@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>ESC Player registration</title>
+    <style>
+.button {
+    /*
+    background-color: #4CAF50;
+    border: none;
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    margin: 4px 2px;
+    cursor: pointer;
+    padding: 15px 32px;
+    */
+    font-size: 200%;
+}
+button.dir {
+    /*
+    background-color: #4CAF50;
+    border: none;
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    margin: 4px 2px;
+    cursor: pointer;
+    padding: 15px 32px;
+    */
+    font-size: 200%;
+    width: 5em;
+    height: 5em;
+}
+</style>
+
+  </head>
+  <body>
+    Hello.
+    <div id='login' style='font-size: 100%' >
+        <label for='jid'>ID:</label>
+        <input type='text' name='jid' id='jid' value='xxx' onchange="setUserName(this.value)">
+        <button  onclick="register()" id='register' value='register' class="">Register new player</button>
+    </div>
+    <button id='connect' value='connect' class="button">Connect</button>
+
+
+    <hr>
+    <table id='log'></table>
+    <script src='http://ajax.googleapis.com/ajax/libs/jquery/1.2.6/jquery.min.js'></script>
+    <script src='../strophe.js?v=3'></script>
+    <!--
+    See https://github.com/strophe/strophejs-plugin-register/blob/master/strophe.register.js
+    or  https://github.com/metajack/strophejs-plugins/tree/master/register -->
+    <script type="text/javascript">
+
+var userID ="";
+var userName = "";
+
+userName = "player1" ;
+var myDomain = window.location.hostname ;
+var defaultDomain = "esc-andy.local"; // XMPP host name
+
+var BOSH_SERVICE = 'http://'+myDomain+':5280/http-bind';
+var connection = null;
+
+//https://xmpp.org/extensions/xep-0077.html
+function getRegistrationFields() {
+    var request = $iq({type: 'get'}).c('query', {xmlns: 'jabber:iq:register'});
+    connection.sendIQ(request, function (iq) {
+        if (iq)
+            console.log ("getRegistrationFields returned ",iq);
+        else
+            console.log ("getRegistrationFields returned no iq");
+    }, function (iq) {
+            log ("Hi");
+            console.log ("getRegistrationFields returned error");        
+    });
+}
+
+function register() {
+    log('Registering new player '+userName);
+    //https://xmpp.org/extensions/xep-0077.html
+    //connection.addHandler(registrationSuccess, null, null, null); 
+
+    var iq = $iq({type: 'set'}).c('query', {xmlns: 'jabber:iq:register'});
+    iq.c("username").t(userName).up();
+    iq.c("password").t(userName).up();
+    connection.sendIQ(iq, function (stanza) {
+        // Note that I had to fix a bug (feature?) in strophe.js that prevented handlers from getting called if user was not authenticated
+        console.log ("register returned ",stanza);
+        log("Registration success!",stanza);
+        log("Attempting to connect.");
+        connection.connect(userID,userName,onConnect);
+
+    }, function (iq) {
+        console.log ("register returned error",iq);        
+    }
+    );
+}
+
+
+function setUserName(id) {
+    if (id)
+        log("changing user name to "+id)
+    userName = id || (userName || defaultUser) ;
+    log("User name: "+userName);
+    userID = userName + "@" + defaultDomain ;    
+    document.getElementById("jid").value = userName ;
+}
+
+function rawInput(data)
+{
+    console.log('RECV', data);
+}
+
+function rawOutput(data)
+{
+    console.log('SENT', data);
+}
+
+function log(msg, data) {
+    var tr = document.createElement('tr');
+    var th = document.createElement('th');
+    th.setAttribute( "style", "text-align: left; vertical-align: top;" );
+    var td;
+
+    th.appendChild( document.createTextNode(msg) );
+    tr.appendChild( th );
+
+    if (data) {
+        td = document.createElement('td');
+        pre = document.createElement('code');
+        pre.setAttribute("style", "white-space: pre-wrap;");
+        td.appendChild(pre);
+        pre.appendChild( document.createTextNode( Strophe.serialize(data) ) );
+        tr.appendChild(td);
+    } else {
+        th.setAttribute('colspan', '2');
+    }
+
+    $('#log').append(tr);
+}
+
+Strophe.log = function (level,msg) {
+    log("Strophe log level "+level+": "+msg);
+}
+
+
+function onConnect(status)
+{
+    if (status == Strophe.Status.CONNECTING) {
+        log('Strophe is connecting.');
+    } else if (status == Strophe.Status.CONNFAIL) {
+        log('Strophe failed to connect.');
+       $('#connect').get(0).value = 'connect';
+       $('#connect').get(0).innerHTML="Connect";
+    } else if (status == Strophe.Status.DISCONNECTING) {
+       log('Strophe is disconnecting.');
+    } else if (status == Strophe.Status.DISCONNECTED) {
+       log('Strophe is disconnected.');
+       $('#connect').get(0).value = 'connect';
+       $('#connect').get(0).innerHTML="Connect";
+    } else if (status == Strophe.Status.CONNECTED) {
+        log('Strophe is connected.');
+    } else if (status == Strophe.Status.AUTHFAIL) {
+        log('Strophe authorization failed. Attempting to register new player.');
+        register();
+    }
+    else {
+        log('Strophe connection status:' + status);        
+        console.log(Strophe.Status);
+    }
+}
+
+$(document).ready(function () {
+    connection = new Strophe.Connection(BOSH_SERVICE);
+    connection.rawInput = rawInput;
+    connection.rawOutput = rawOutput;
+    setUserName();
+    //registerNewPlayer();
+    $('#connect').bind('click', function () {
+        var button = $('#connect').get(0);
+        if (button.value == 'connect') {
+            button.value = 'disconnect';
+            button.innerHTML = 'Disconnect';
+            connection.connect(userID,
+               userName,
+               onConnect);
+        } else {
+            button.value = 'connect';
+            button.innerHTML = 'Connect';
+            connection.disconnect();
+        }
+    });
+
+});
+
+
+    </script>
+  </body>
+</html>

@@ -1,0 +1,13 @@
+#!/bin/bash
+
+ps aux | grep /eschttpstart | grep -v grep | awk '{print $2;}' | xargs kill -9
+
+echo "Stopping webserver..."
+#ps aux | grep SimpleHTTPServer | grep -v grep | awk '{print $2;}' | xargs kill -9
+ps aux | grep "php -S 0.0.0.0:8000 -t" | grep -v grep | awk '{print $2;}' | xargs kill -9
+
+echo "Stopping osc relay..."
+ps aux | grep escosc/index.js | grep -v grep | awk '{print $2;}' | xargs kill -9
+
+
+echo "Done."

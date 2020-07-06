@@ -1,0 +1,59 @@
+#!/bin/bash
+echo "    Starting up web server and OSC relay for html controllers. To stop, type ctrl-c."
+
+# Stop ourselves if we get an exit signal, so shutdown isn't blocked
+wspid=
+oscpid=
+trap '[[ $wspid ]] && kill $wspid; [[ $oscpid ]] && kill $oscpid' TERM EXIT
+#trap ./eschttpstop SIGTERM
+# To allow OSX’s Terminal app to close this window while processes are still running,
+# change the settings in the Terminal app:
+# Preferences>Shell>Prompt before closing select either Never or Only... and add bash and php
+
+PORT=8000
+if [[ $EUID -eq 0 ]]; then
+  PORT=80
+  echo "Running this script as root, using standard HTTP port 80." 
+fi
+
+# cd to the directory of this file
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd $DIR
+
+#echo "Starting simple webserver on port $PORT..."
+#cd eschttp
+#python -m SimpleHTTPServer $PORT &
+#cd ..
+
+# Using a php webserver so we can easily set player's IP address and server hostname, if it's needed
+# or other php server-side scripting
+echo "Starting simple php webserver on port $PORT..."
+php -S 0.0.0.0:$PORT -t eschttp & wspid=$!
+
+
+# Open web pages
+#open http://localhost:$PORT
+#open http://localhost:$PORT/docent.php
+
+if hash node 2>/dev/null && [ -e escosc/index.js ] ; then
+	echo "Starting OSC relay..."
+	node escosc/index.js & oscpid=$!
+else
+	echo "escosc not present or Node.js not installed, not starting OSC relay."
+# Sleep for a realllllly long time so this script won't complete until ctrl-c
+#	sleep 9827458023 & pid=$!
+fi
+
+if pgrep -f "ejabberd" > /dev/null
+then
+    echo "ejabberd already running"
+else
+    echo "Starting ejabberd"
+	ROOTDIR=/Applications/ejabberd-13.12
+	$ROOTDIR/bin/ejabberdctl start
+	$ROOTDIR/bin/ejabberdctl started
+fi
+
+wait
+
+#./eschttpstop

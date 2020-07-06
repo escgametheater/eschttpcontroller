@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<!DOCTYPE html>
+<html>
+<head>  <meta charset="utf-8" />
+  <title>WebSocket Test</title>
+    <style>
+button {
+  font-size: 8vw ;  
+}
+</style>
+
+  <script language="javascript" type="text/javascript">
+
+  //var wsUri = "ws://192.168.1.202:8887";
+  var wsUri = "ws://192.168.1.202:8887";
+  var output;
+  const blobReader = new FileReader();
+
+  var connected = false ;
+
+  var usernameDocent = "docent";
+  var usernameGameEngine = "game-engine" ;
+  var usernameGameLauncher = "game-launcher" ;
+  var usernamePlayer = "mbpandy" ;
+  var websocket = {};
+
+  var username = "";
+  var currentGame = "robotbasketballpro" ;
+
+
+  function setUsername (u) {
+    if (username !== u) {
+      username = u ;
+      doSend("u"+username);
+    }
+  }
+  function sendNext() {
+    setUsername(usernameDocent);
+    doSend("enext:");
+  }
+  function sendStart(game) {
+    setUsername(usernameGameLauncher);
+    doSend("estart:game="+game+",round=0,difficulty=0");
+  }
+  function shoot() {
+    setUsername(usernamePlayer);
+    doSend("etouchDown(50.0, 50.0):");
+  }
+  function shake() {
+    setUsername(usernamePlayer);
+    doSend("eShake:");
+  }
+
+  function sendUpdate(obj) {
+    console.log("sendUpdate: ",obj);
+    setUsername(usernamePlayer);
+    doSend("s"+JSON.stringify(obj));
+  }
+
+  blobReader.addEventListener('loadend', (e) => {
+    const text = e.srcElement.result;
+    writeToScreen("Blob to text: "+text);
+    //writeToScreen("Blob to text: "+buf2hex(text));
+    //console.log("blobReader event",e);
+    onMessage.active = false;
+    if (text == "ping") onping(text);
+  });
+
+var count = 0 ;
+var totalMs = 0 ;
+
+function buf2hex(buffer) { // buffer is an ArrayBuffer
+  return Array.prototype.map.call(new Uint8Array(buffer), x => ('00' + x.toString(16)).slice(-2)).join('');
+}
+
+  function init()
+  {
+    output = document.getElementById("output");
+    newConnection();
+  }
+
+  function onConnected() {};
+
+  function newConnection() {
+    onConnected = function() {};
+    websocket = new WebSocket(wsUri);
+    websocket.onopen = function(evt) { onOpen(evt) };
+    websocket.onclose = function(evt) { onClose(evt) };
+    websocket.onmessage = function(evt) { onMessage(evt) };
+    websocket.onerror = function(evt) { onError(evt) };
+    websocket.binaryType = "arraybuffer"; // We don't want to use blobs, the default, because we would then need to use a FileReader to convert them to anything useful
+    writeToScreen("WebSocket connecting...");
+  }
+
+  function onOpen(evt)
+  {
+    writeToScreen("CONNECTED");
+    connected = true ;
+    username ="";
+    onConnected();
+    //doSend("u"+username); // Setting username
+
+    //setTimeout( function () {
+    //  ping();
+    //},100);
+  }
+
+
+
+  function onClose(evt)
+  {
+    connected = false ;
+    username = "";
+    writeToScreen("DISCONNECTED");
+  }
+
+
+function ab2str(buf) {
+// Convert an array buffer with Uint8 encoding to String
+// See
+// https://developers.google.com/web/updates/2012/06/How-to-convert-ArrayBuffer-to-and-from-String
+  return String.fromCharCode.apply(null, new Uint8Array(buf));
+}
+
+  function onMessage(evt)
+  {
+    // Make sure we are only calling this once at a time
+    // blobReader can only handle one blob at a time
+    if (onMessage.active) {
+      setTimeout(function() {onMessage(evt);},1);
+      return ;
+    }
+    onMessage.active = true ;
+    //console.log("Response: ",evt);
+    var delay = Date.now()-doSend.time ;
+    var dataString = ab2str(evt.data);
+    var commandChar = dataString.charAt(0);
+    var messageString = dataString.substring(1);
+
+    writeToScreen('<span style="color: blue;">RESPONSE: ' + dataString + ". Time since last send: "+ delay + ' ms</span>');
+
+    switch (commandChar) {
+    case 'e': // "Event" message
+      writeToScreen("Event received: " + messageString);
+      break;
+    case 'p': // Ping received
+      writeToScreen("Ping received, sending back response.");
+      doSend ('q'+messageString);
+      break;
+    case 'q': // Ping response
+      onPingResponse(dataString);
+      break;
+    default:
+      writeToScreen("Unknown message type (sending back verbatim): "+ commandChar + " " + messageString );
+      break;
+    }
+
+    onMessage.active = false ;
+  }
+  onMessage.active = false ;
+
+  function onError(evt) {
+    console.log(evt.data);
+    writeToScreen("Error!");
+    writeToScreen('<span style="color: red;">ERROR:</span> ' + evt.data);
+  }
+
+  function onPingResponse(message) {
+    var delay = Date.now()-ping.time ;
+    totalMs += delay ;
+    count ++ ;
+    var avg = totalMs/count ;
+    writeToScreen('<span style="color: blue;">Count: '+ count + ' Delay: '+ delay + " avg: " + avg.toFixed(2) + '</span>');
+    if (count < 50)
+      setTimeout( ping,250);
+  }
+  
+  function ping() {
+    if (ping.active) {
+      setTimeout(ping,10);      
+    }
+    ping.active = true ;
+    ping.time = Date.now();
+    doSend("p"+Date.now());
+    ping.active = false ;    
+  }
+
+  function doSend(message) {
+    // If not connected, connect and try again
+    if (websocket.readyState != WebSocket.OPEN) {
+      // Send once we're connected/reconnected
+      var oldusername = username ;
+      onConnected = function() {
+        setUsername(oldusername);
+        doSend(message);
+      } ;
+      if (websocket.readyState != WebSocket.CONNECTING) {
+        newConnection() ;
+      }
+      return ;
+    }
+    writeToScreen("SENDING: " + message);
+    //var blob = new Blob([message]);
+    //websocket.send(blob);
+    doSend.time = Date.now();
+    websocket.send(message);
+  }
+  function closeConnection() {
+    writeToScreen("Closing websocket");
+    websocket.close();
+  }
+
+
+function autoscroll(elem, func) {
+  // Autoscroll a scrollable element after executing func, if the scroll is at the bottom
+  var height = elem.offsetHeight ;
+  var scrollTop = elem.scrollTop ;
+  var scrollHeight = elem.scrollHeight ;
+  // Only autoscroll if we're scrolled to the bottom
+  var autoscroll =  (scrollTop + height >= scrollHeight) ;
+
+  func();
+
+  if (autoscroll)
+    elem.scrollTop = elem.scrollHeight;
+
+}
+  function writeToScreen(message)
+  {
+    autoscroll(output, function () {
+      var div = document.createElement("div");
+      //pre.style.wordWrap = "break-word";
+      div.innerHTML = message;
+      output.appendChild(div);
+    })
+  }
+
+  window.addEventListener("load", init, false);
+
+  </script>
+</head>
+<body>
+  <h2>WebSocket Test</h2>
+  Connection:
+  <button onclick='closeConnection();'>Close</button>
+  <button onclick='newConnection();'>Reopen</button>
+  <br>Docent:
+  <button onclick='sendNext();'>Next</button>
+  <button onclick='sendStart(currentGame);'>Start</button>
+  <button onclick='ping();'>Ping</button>
+  <br>
+  Player:
+  <button onclick='shoot();'>shoot</button>
+  <button onclick='shake();'>Locate</button>
+  <br>
+  x-accel:
+  <button onclick='sendUpdate({i:0,keys:["x-accel"],values:[-0.5]});'>-0.5</button>
+  <button onclick='sendUpdate({i:0,keys:["x-accel"],values:[0]});'>-0</button>
+  <button onclick='sendUpdate({i:0,keys:["x-accel"],values:[0.5]});'>+0.5</button>
+
+
+  <div id="output" style="widht:95vw; height:90vh; overflow: auto; border-style: solid; font-size: 4vw"></div>
+</body>
+</html>

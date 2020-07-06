@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>ESC OSC testing controller</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+.button {
+    /*
+    background-color: #4CAF50;
+    border: none;
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    margin: 4px 2px;
+    cursor: pointer;
+    padding: 15px 32px;
+    font-size: 100%;
+    */
+    font-size: 130%;
+}
+button.dir {
+    /*
+    background-color: #4CAF50;
+    border: none;
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    margin: 4px 2px;
+    cursor: pointer;
+    padding: 15px 32px;
+    font-size: 100%;
+    */
+    opacity: 0.5 ;
+    width: 16.6vmin;
+    height: 16.6vmin;
+}
+body {
+    opacity: 0.3 ;
+    font-size: 100%;
+    background-color: black;
+    color: white;
+}
+</style>
+    <script src='http://ajax.googleapis.com/ajax/libs/jquery/1.2.6/jquery.min.js'></script>
+    <script src="osc/osc-browser.min.js"></script>
+</script>
+
+</head>
+  <body>
+    <button id='send' onclick="sendTest(0)" class="button">Send 0</button>
+    <button id='send' onclick="sendTest(1)" class="button">Send 1</button>
+    <button id='send' onclick="sendTest(2)" class="button">Send 2</button>
+    <button id='send' onclick="sendTest(3)" class="button">Send 3</button>
+    <button id='send' onclick="sendTest(4)" class="button">Send 4</button>
+    <button id='send' onclick="sendTest(5)" class="button">Send 5</button>
+    <button id='send' onclick="sendTest(6)" class="button">Send 6</button>
+    <button id='send' onclick="sendTest(7)" class="button">Send 7</button>
+    <button id='send' onclick="sendTest(8)" class="button">Send 8</button>
+    <br>
+    OSC index: <span id="oscindex"> </span><br>
+    <div id='logdiv' style="height: 150px; overflow: scroll;">
+        <table id='log'></table>
+    </div>
+    <script type="text/javascript">
+
+        oscport = new osc.WebSocketPort({
+            url: "ws://" + window.location.hostname + ":8081"
+        });
+        oscport.on("message", function (oscMessage) {
+            // Should never get a message
+            console.log("OSC message received!", oscMessage);
+        });
+        oscport.on("error", function (err) {
+            console.log("OSC port error!", err);
+        });
+        oscport.on("open", function (msg) {
+            console.log("OSC port open!", msg);
+        });
+        oscport.on("close", function (oscMessage) {
+            console.log("OSC port closed!", oscMessage);
+        });
+            console.log("Opening OSC WebSocket port....");
+            oscport.open();
+
+function sendUpdate(params,args) {
+    var addr = "/" + params.join("/");
+    sendUpdateOSC({
+        address: addr,
+        args: args
+    });
+}
+function sendUpdateOSC(msg) {
+    // Saving in case there is an error so we can retry
+    console.log("Sending OSC message ",msg);
+    oscport.lastmessage = msg ;
+    oscport.send(msg);
+}
+function sendTest(p) {
+    var params = ["x-accel","y-accel","z-accel","x-gyro","y-gyro","z-gyro"];
+    var args = [
+        {type:"i",value:p},
+        {type:"f",value:1.0},
+        {type:"f",value:2.0},
+        {type:"f",value:3.0},
+        {type:"f",value:-10.0},
+        {type:"f",value:-20.0},
+        {type:"f",value:-30.0}
+    ];
+    sendUpdate(params,args);
+}
+
+
+
+
+    </script>
+  </body>
+</html>

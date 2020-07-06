@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>ESC Docent controller</title>
+    <style>
+.button {
+    /*
+    background-color: #4CAF50;
+    border: none;
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    margin: 4px 2px;
+    cursor: pointer;
+    padding: 15px 32px;
+    */
+    font-size: 200%;
+}
+
+</style>
+    <script src='http://ajax.googleapis.com/ajax/libs/jquery/1.2.6/jquery.min.js'></script>
+    <script src='../strophe.js'></script>
+    <script>
+        // Including my files this way so they don't get cached, which is annoying while debugging
+    function includeJS(f,attr) {
+        document.write("<script " + attr+ " type='text/javascript' src='"+f+"?v=" + Date.now() + "'><\/script>");
+    }
+    includeJS('esc.js','defer');
+    </script>
+
+  </head>
+  <body>
+    <div id='login' style='font-size: 100%' >
+      <form name='cred'>
+        <label for='jid'>JID:</label>
+        <input type='text' id='jid' value=''>
+        <br>
+        <label for='sendto'>Send to:</label>
+        <input type='text' id='sendto' value='echobot@esc-game-server.local'>
+        <label for='sendmsg'>Chat:</label>
+        <input type='text' id='sendmsg' value='hello'>
+        <input type='button' id='sendButton' value='Send' class="button">
+        <br>
+      </form>
+    </div>
+    <button id='connect' value='connect' class="button">Connect</button>
+    <button id='connect' onclick='loadGame("pixelprisonblues")' class="button">Load PPBlues</button>
+    <button id='connect' onclick='loadGame("robotbasketballpro")' class="button">Load BBall</button>
+    <br>
+    <button id='startButton' onclick="startGame()" class="button">Start Game</button>
+    <button id='nextButton' onclick="nextCommand()" class="button">Next</button>
+    <button id='quitButton' onclick="quitGame()" class="button">Quit Game</button>
+    <br>
+    Current game: <span id="currentGame"></span>
+    <hr>
+    <table id='log'></table>
+    <script type="text/javascript">
+        var isDocent = true ;
+    </script>
+  </body>
+</html>

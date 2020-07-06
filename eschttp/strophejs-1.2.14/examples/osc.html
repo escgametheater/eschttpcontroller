@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>ESC player controller OSC over Web Socket Demo</title>
+        <meta charset="UTF-8" />
+        <!--
+        <link rel="stylesheet" type="text/css" media="all" href="osc-view.css"></link>
+    -->
+
+<style>
+button.dir {
+    /*
+    background-color: #4CAF50;
+    border: none;
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    margin: 4px 2px;
+    cursor: pointer;
+    padding: 15px 32px;
+    */
+    font-size: 200%;
+    width: 5em;
+    height: 5em;
+}
+</style>
+
+        <script src='http://ajax.googleapis.com/ajax/libs/jquery/1.2.6/jquery.min.js'></script>
+        <script src="osc/osc-browser.min.js"></script>
+        <script src='swipe.js?v=1'></script>
+        <script src='oscppb.js?v=1'></script>
+        <script type="text/javascript">
+
+window.handleSwipe = function(dir,lastdir) {
+    if (dir!=lastdir) {
+        go(dir);            
+    }
+    console.log("Detected swipe, direction "+dir+" last dir " + lastdir);    
+}
+
+document.addEventListener('keydown', function(event) {
+    if(event.keyCode == 37) {go("l");}
+    else if(event.keyCode == 39) {go("r");}
+    else if(event.keyCode == 38) {go("u");}
+    else if(event.keyCode == 40) {go("d");}
+    return true;
+});
+
+// Connect to a server at the domain name this page was served from
+// Server needs to have running a simple relay listening on this port
+// and forwarding to the game engine
+var port = new osc.WebSocketPort({
+    url: "ws://" + window.location.hostname + ":8081"
+});
+
+port.on("message", function (oscMessage) {
+    // Should never get a message
+    console.log("message", oscMessage);
+});
+
+port.open();
+
+function go(c) {
+    ppb.go(c);
+}
+        </script>
+    </head>
+
+<body>
+<h1>ESC game controller</h1>
+<button onclick="sendMovesRot()">Send rotating moves</button><br>
+
+<table>
+    <tr><td></td><td><button id=up class=dir onclick="go('u')">Up</button></td><td></td></tr>
+    <tr><td><button id=left class=dir onclick="go('l')">Left</button></td><td><button id=neutral class=dir onclick="go('n')">O</button></td><td><button id=right class=dir onclick="go('r')">Right</button></td></tr>
+    <tr><td></td><td><button class=dir id=down onclick="go('d')">Down</button></td><td></td></tr>
+</table>
+    </body>
+</html>

@@ -1,0 +1,121 @@
+Based the timings on 10fps (100 ms delay)
+
+(6/11/2015)
+overlay_bomb
+(stationary)
+1,2 loop
+(running)
+1 (no offset), 2 (offset: x+3, y+2)
+
+tile_switch_(color)_(side)_cooldown
+1,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,
+(goes to idle loop with letter overlay)
+
+
+sprite_moneybag
+1,2,2,2,3,4
+
+
+tile_switch
+1, 1, 2_4, 3, 3, 2_4
+
+tile_chamber_light
+1, 1, 2_4, 3, 3, 2_4
+
+
+
+sprite_powerup_X_no_bubble_idle
+1_3, 2, 2, 1_3, 4, 4
+
+effect_pickaxe_hit
+1,2
+3,4,5,6 (loop)
+
+
+sprite_guard_body_lose
+	head placement
+	1:x+6, y-5
+
+
+victory dance
+	timing
+	1,1,2,3,4,4,5,6
+
+	head placement 
+	1: y +2
+	2: y +1
+	3: default y
+	4: mirrored x, y +2
+	5: mirrored x, y +1
+	6: mirrored x, default y
+
+
+crawl
+	timings
+	1,1,2,2,2
+	
+	head placement
+	1:x+6, y-5
+	2:x+6, y-4
+
+
+effect harmonica acquire
+	1,2: no head
+	3,4,5,6: harmonica head
+
+
+sprite warden idle
+	1, 2, 2, 2, 2, 3, 4, 5, 6
+
+
+pipe enter
+	timings
+	1, 2, 2, 2,
+
+	head placement
+	1:x-3, y+1
+	2:x-2, y+1
+
+
+pipe fly
+	timings
+	1, 1, 2, 2, 2
+	head placement
+	1: x+6, y-2
+	2: x+6, y-3
+
+
+pipe exit
+	head placement
+	x+3, y+1
+
+
+
+2 frame runcycle:
+	1. sprite_clint_prisoner_body.png
+	2. sprite_clint_prisoner_body_run_2frames_2.png (head = y +2 pixels)
+
+3 frame runcycle:
+	1. sprite_clint_prisoner_body.png
+	2. sprite_clint_prisoner_body_run_3frames_2.png	(head = y +2 pixels)
+	3. sprite_clint_prisoner_body.png
+	4. sprite_clint_prisoner_body_run_3frames_4.png	(head = y +2 pixels)
+
+4 frame runcycle:
+	1. sprite_clint_prisoner_body_run_4frames_1.png	(head = y +2 pixels)
+	2. sprite_clint_prisoner_body_run_4frames_2.png
+	3. sprite_clint_prisoner_body_run_4frames_3.png	(head = y +2 pixels)
+	4. sprite_clint_prisoner_body_run_4frames_4.png
+
+sprite_spark
+1, 2, 3 (loop)
+
+tile_switch_on
+1, 2_4, 3, 2_4 (loop)
+
+sprite_claw
+2,3,4,1
+
+
+
+
